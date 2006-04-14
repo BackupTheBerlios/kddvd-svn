@@ -1,0 +1,966 @@
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<class>frm_hlavni</class>
+<widget class="Dialog">
+    <property name="name">
+        <cstring>frm_hlavni</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>600</width>
+            <height>490</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>kDDvD</string>
+    </property>
+    <property name="associations" stdset="0">
+        <stringlist>
+            <string></string>
+            <string>@fs_createfile.setText(~/name.iso)
+@fs_burnfile.setText(~/name.iso)
+@cmb_cdrom.clear
+
+@setGlobal(data, @execBegin(bash)
+hal-find-by-capability --capability storage.cdrom | while read UDI
+do
+    unset DEV NAM MED SPE SIZ
+    DEV="$(hal-get-property --udi $UDI --key block.device)"
+    NAM="$(hal-get-property --udi $UDI --key info.product)"
+    MED="$(hal-get-property --udi $UDI --key storage.cdrom.cdr | sed -e s/true/CD/ -e s/false//) $(hal-get-property --udi $UDI --key storage.cdrom.dvd | sed -e s/true/DVD/ -e s/false//)"
+    mount | grep -q $DEV &amp;&amp; \
+    SPE="$(dvd+rw-mediainfo $DEV | grep 'Current Write Speed' | cut -d: -f2 | sed 's: ::g')"
+    SPE="${SPE:0:1}"
+    echo "$DEV|$NAM|$MED|$(if [ -z $SPE ]; then echo '&lt;none&gt;'; else echo $SPE; fi)"
+done
+@execEnd)
+
+@for(i, 1, @exec(echo "@global(data)" | wc -l))
+ @cmb_cdrom.insertItem(@exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f2), -1)
+@end</string>
+            <string></string>
+        </stringlist>
+    </property>
+    <widget class="ComboBox">
+        <property name="name">
+            <cstring>cmb_cdrom</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>60</x>
+                <y>10</y>
+                <width>530</width>
+                <height>24</height>
+            </rect>
+        </property>
+        <property name="associations" stdset="0">
+            <stringlist>
+                <string></string>
+            </stringlist>
+        </property>
+    </widget>
+    <widget class="Label">
+        <property name="name">
+            <cstring>lbl_cdrom</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>5</x>
+                <y>12</y>
+                <width>50</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Device:</string>
+        </property>
+    </widget>
+    <widget class="ExecButton">
+        <property name="name">
+            <cstring>btn_info</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>40</y>
+                <width>140</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>In&amp;fo</string>
+        </property>
+        <property name="flat">
+            <bool>true</bool>
+        </property>
+        <property name="associations" stdset="0">
+            <stringlist>
+                <string>@Message.info(
+@for(i, 1, @exec(echo "@global(data)" | wc -l))
+ @exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f2)
+ Device: @exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f1)
+ Medium support: @exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f3)
+ Burn speed: @exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f4)x
+Size: @exec(
+    DEV="$(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f1)"
+    mount | grep -q "$DEV" &amp;&amp; \
+    SIZ=( $(dvd+rw-mediainfo "$DEV" | grep 'READ CAPACITY') )
+    SIZ=$(echo ${SIZ[@]:2:3} | cut -d= -f2)
+    [ -z $SIZ ] || SIZ=$(($SIZ/1024/1024))
+    if [ -z $SIZ ]; then echo '&lt;none&gt;'; else echo $SIZ MB; fi
+)
+@end
+
+, CD(DVD) - ROM Info)</string>
+            </stringlist>
+        </property>
+    </widget>
+    <widget class="ExecButton">
+        <property name="name">
+            <cstring>btn_about</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>450</y>
+                <width>600</width>
+                <height>40</height>
+            </rect>
+        </property>
+        <property name="font">
+            <font>
+                <pointsize>16</pointsize>
+            </font>
+        </property>
+        <property name="text">
+            <string>&amp;About KDDVD</string>
+        </property>
+        <property name="flat">
+            <bool>true</bool>
+        </property>
+        <property name="associations" stdset="0">
+            <stringlist>
+                <string>@Message.info(Authors:
+* Vojta.N2o
+* Dave
+
+
+Version 0.0
+)</string>
+            </stringlist>
+        </property>
+    </widget>
+    <widget class="ProgressBar">
+        <property name="name">
+            <cstring>pb_prubeh</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>5</x>
+                <y>419</y>
+                <width>590</width>
+                <height>25</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="Label">
+        <property name="name">
+            <cstring>lbl_size</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>400</y>
+                <width>205</width>
+                <height>19</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Size: 0 MB</string>
+        </property>
+    </widget>
+    <widget class="ExecButton">
+        <property name="name">
+            <cstring>btn_reinit</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>160</x>
+                <y>40</y>
+                <width>430</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Re - initiali&amp;zation</string>
+        </property>
+        <property name="accel">
+            <number>276824154</number>
+        </property>
+        <property name="flat">
+            <bool>true</bool>
+        </property>
+        <property name="populationText">
+            <string>@exit</string>
+        </property>
+        <property name="associations" stdset="0">
+            <stringlist>
+                <string>@cmb_cdrom.clear
+
+@setGlobal(data, @execBegin(bash)
+hal-find-by-capability --capability storage.cdrom | while read UDI
+do
+    unset DEV NAM MED SPE SIZ
+    DEV="$(hal-get-property --udi $UDI --key block.device)"
+    NAM="$(hal-get-property --udi $UDI --key info.product)"
+    MED="$(hal-get-property --udi $UDI --key storage.cdrom.cdr | sed -e s/true/CD/ -e s/false//) $(hal-get-property --udi $UDI --key storage.cdrom.dvd | sed -e s/true/DVD/ -e s/false//)"
+    mount | grep -q $DEV &amp;&amp; \
+    SPE="$(dvd+rw-mediainfo $DEV | grep 'Current Write Speed' | cut -d: -f2 | sed 's: ::g')"
+    SPE="${SPE:0:1}"
+    echo "$DEV|$NAM|$MED|$(if [ -z $SPE ]; then echo '&lt;none&gt;'; else echo $SPE; fi)"
+done
+@execEnd)
+
+@for(i, 1, @exec(echo "@global(data)" | wc -l))
+ @cmb_cdrom.insertItem(@exec(echo "@global(data)" | head -n @i | tail -n 1 | cut -d'|' -f2), -1)
+@end</string>
+            </stringlist>
+        </property>
+    </widget>
+    <widget class="TabWidget">
+        <property name="name">
+            <cstring>TabWidget1</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>70</y>
+                <width>600</width>
+                <height>330</height>
+            </rect>
+        </property>
+        <property name="paletteForegroundColor">
+            <color>
+                <red>0</red>
+                <green>0</green>
+                <blue>0</blue>
+            </color>
+        </property>
+        <property name="backgroundOrigin">
+            <enum>WidgetOrigin</enum>
+        </property>
+        <property name="tabShape">
+            <enum>Rounded</enum>
+        </property>
+        <widget class="QWidget">
+            <property name="name">
+                <cstring>tab</cstring>
+            </property>
+            <attribute name="title">
+                <string>Create &amp;ISO</string>
+            </attribute>
+            <widget class="Label">
+                <property name="name">
+                    <cstring>lbl_image</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>13</y>
+                        <width>30</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>ISO:</string>
+                </property>
+            </widget>
+            <widget class="GroupBox">
+                <property name="name">
+                    <cstring>gb_parametres</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>42</y>
+                        <width>585</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Additional parameters</string>
+                </property>
+                <widget class="Label">
+                    <property name="name">
+                        <cstring>lbl_dd_2</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>5</x>
+                            <y>20</y>
+                            <width>20</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>dd:</string>
+                    </property>
+                </widget>
+                <widget class="LineEdit">
+                    <property name="name">
+                        <cstring>lne_pardd</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>40</x>
+                            <y>18</y>
+                            <width>540</width>
+                            <height>24</height>
+                        </rect>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="FileSelector">
+                <property name="name">
+                    <cstring>fs_createfile</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>60</x>
+                        <y>10</y>
+                        <width>530</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+                <property name="selectionFilter">
+                    <string>*.iso</string>
+                </property>
+                <property name="selectionCaption">
+                    <string>ISO image</string>
+                </property>
+                <property name="selectionType">
+                    <enum>Save</enum>
+                </property>
+            </widget>
+            <widget class="ExecButton">
+                <property name="name">
+                    <cstring>btn_createstop</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>440</x>
+                        <y>98</y>
+                        <width>150</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>St&amp;op</string>
+                </property>
+                <property name="flat">
+                    <bool>true</bool>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string>@execBegin(bash)
+Kill() {
+PID="$(ps ax | grep -v grep | grep "dd if $1 of $2")"
+PID=( $PID )
+kill -15 ${PID[@]:0:1}
+}
+
+Kill @global(DEV) @global(ISO)
+rm -rf @global(ISO)
+@execEnd
+
+@lbl_size.setText(Size: 0 MB)
+@Message.error(ISO creating stopped !)</string>
+                    </stringlist>
+                </property>
+            </widget>
+            <widget class="Timer">
+                <property name="name">
+                    <cstring>tmr_iso</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>20</x>
+                        <y>0</y>
+                        <width>32</width>
+                        <height>32</height>
+                    </rect>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string>@setGlobal(hotovo, @exec(echo "$(du -m @fs_file.text |cut -f1)"))
+
+@lbl_size.setText(Size: @exec(
+echo "@global(hotovo) MB" / "@global(size) MB"
+))
+
+@pb_prubeh.setText(@exec(
+function proc(){ echo $(($1$2$3$4$5)); }
+proc "@global(hotovo)" "*" "100" "/" "@global(size)"
+))</string>
+                    </stringlist>
+                </property>
+                <property name="interval">
+                    <number>500</number>
+                </property>
+            </widget>
+            <widget class="ExecButton">
+                <property name="name">
+                    <cstring>btn_create</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>98</y>
+                        <width>430</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>&amp;Create ISO</string>
+                </property>
+                <property name="flat">
+                    <bool>true</bool>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string>@setGlobal(ISO, @fs_createfile.text)
+@setGlobal(DEV, @exec(
+echo "@global(data)" | head -n $((@cmb_cdrom.currentItem + 1))  | cut -d'|' -f1
+))
+
+@setGlobal(size, @exec(
+    mount | grep -q @global(DEV) &amp;&amp; \
+    SIZ=( $(dvd+rw-mediainfo @global(DEV) | grep 'READ CAPACITY') )
+    SIZ=$(echo ${SIZ[@]:2:3} | cut -d= -f2)
+    [ -z $SIZ ] || SIZ=$(($SIZ/1024/1024))
+    if [ -z $SIZ ]; then echo '&lt;none&gt;'; else echo $SIZ; fi
+))
+@tmr_iso.execute
+
+@exec(
+p_dd=@lne_pardd.Text
+iso=@global(ISO)
+dev=@global(DEV)
+rm -rf $iso
+dd if=$dev of=$iso $p_dd &amp;
+)</string>
+                    </stringlist>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QWidget">
+            <property name="name">
+                <cstring>tab</cstring>
+            </property>
+            <attribute name="title">
+                <string>&amp;Burn ISO</string>
+            </attribute>
+            <widget class="Label">
+                <property name="name">
+                    <cstring>lbl_image_2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>13</y>
+                        <width>30</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>ISO:</string>
+                </property>
+            </widget>
+            <widget class="FileSelector">
+                <property name="name">
+                    <cstring>fs_burnfile</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>60</x>
+                        <y>10</y>
+                        <width>530</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+                <property name="selectionFilter">
+                    <string>*.iso</string>
+                </property>
+                <property name="selectionCaption">
+                    <string>ISO image</string>
+                </property>
+                <property name="selectionType">
+                    <enum>Open</enum>
+                </property>
+            </widget>
+            <widget class="GroupBox">
+                <property name="name">
+                    <cstring>gb_parametres_2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>42</y>
+                        <width>585</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="title">
+                    <string>Additional parameters</string>
+                </property>
+                <widget class="Label">
+                    <property name="name">
+                        <cstring>lbl_growisofs_2</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>5</x>
+                            <y>20</y>
+                            <width>60</width>
+                            <height>19</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>growisofs:</string>
+                    </property>
+                </widget>
+                <widget class="CheckBox">
+                    <property name="name">
+                        <cstring>chb_dvdvideo</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>500</x>
+                            <y>20</y>
+                            <width>80</width>
+                            <height>20</height>
+                        </rect>
+                    </property>
+                    <property name="text">
+                        <string>-dvd-video</string>
+                    </property>
+                </widget>
+                <widget class="LineEdit">
+                    <property name="name">
+                        <cstring>lne_pargrowisofs</cstring>
+                    </property>
+                    <property name="geometry">
+                        <rect>
+                            <x>65</x>
+                            <y>18</y>
+                            <width>430</width>
+                            <height>24</height>
+                        </rect>
+                    </property>
+                </widget>
+            </widget>
+            <widget class="Timer">
+                <property name="name">
+                    <cstring>tmr_burn</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>20</x>
+                        <y>10</y>
+                        <width>32</width>
+                        <height>32</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="ExecButton">
+                <property name="name">
+                    <cstring>btn_burnstop</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>440</x>
+                        <y>98</y>
+                        <width>150</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>St&amp;op burning</string>
+                </property>
+                <property name="flat">
+                    <bool>true</bool>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string>@execBegin(bash)
+Kill() {
+PID="$(ps ax | grep -v grep | grep "dd if $1 of $2")"
+PID=( $PID )
+kill -15 ${PID[@]:0:1}
+}
+
+Kill @global(DEV) @global(ISO)
+rm -rf @global(ISO)
+@execEnd
+
+@lbl_size.setText(Size: 0 MB)
+@Message.error(ISO creating stopped !)</string>
+                    </stringlist>
+                </property>
+            </widget>
+            <widget class="TextEdit">
+                <property name="name">
+                    <cstring>txt_burnkonsole</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>153</y>
+                        <width>585</width>
+                        <height>138</height>
+                    </rect>
+                </property>
+                <property name="paletteForegroundColor">
+                    <color>
+                        <red>255</red>
+                        <green>255</green>
+                        <blue>255</blue>
+                    </color>
+                </property>
+                <property name="paletteBackgroundColor">
+                    <color>
+                        <red>0</red>
+                        <green>0</green>
+                        <blue>0</blue>
+                    </color>
+                </property>
+                <property name="palette">
+                    <palette>
+                        <active>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>239</red>
+                                <green>239</green>
+                                <blue>239</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>247</red>
+                                <green>247</green>
+                                <blue>247</blue>
+                            </color>
+                            <color>
+                                <red>119</red>
+                                <green>119</green>
+                                <blue>119</blue>
+                            </color>
+                            <color>
+                                <red>159</red>
+                                <green>159</green>
+                                <blue>159</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                        </active>
+                        <disabled>
+                            <color>
+                                <red>128</red>
+                                <green>128</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>239</red>
+                                <green>239</green>
+                                <blue>239</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>119</red>
+                                <green>119</green>
+                                <blue>119</blue>
+                            </color>
+                            <color>
+                                <red>159</red>
+                                <green>159</green>
+                                <blue>159</blue>
+                            </color>
+                            <color>
+                                <red>128</red>
+                                <green>128</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>128</red>
+                                <green>128</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>238</blue>
+                            </color>
+                            <color>
+                                <red>82</red>
+                                <green>24</green>
+                                <blue>139</blue>
+                            </color>
+                        </disabled>
+                        <inactive>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>239</red>
+                                <green>239</green>
+                                <blue>239</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>119</red>
+                                <green>119</green>
+                                <blue>119</blue>
+                            </color>
+                            <color>
+                                <red>159</red>
+                                <green>159</green>
+                                <blue>159</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>0</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>128</blue>
+                            </color>
+                            <color>
+                                <red>255</red>
+                                <green>255</green>
+                                <blue>255</blue>
+                            </color>
+                            <color>
+                                <red>0</red>
+                                <green>0</green>
+                                <blue>238</blue>
+                            </color>
+                            <color>
+                                <red>82</red>
+                                <green>24</green>
+                                <blue>139</blue>
+                            </color>
+                        </inactive>
+                    </palette>
+                </property>
+                <property name="vScrollBarMode">
+                    <enum>Auto</enum>
+                </property>
+                <property name="text">
+                    <string></string>
+                </property>
+                <property name="readOnly">
+                    <bool>true</bool>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string></string>
+                    </stringlist>
+                </property>
+            </widget>
+            <widget class="ExecButton">
+                <property name="name">
+                    <cstring>btn_burn</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>5</x>
+                        <y>98</y>
+                        <width>430</width>
+                        <height>50</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Burn ISO</string>
+                </property>
+                <property name="flat">
+                    <bool>true</bool>
+                </property>
+                <property name="associations" stdset="0">
+                    <stringlist>
+                        <string>@setGlobal(DVDVIDEO, @chb_dvdvideo.checked)
+@setGlobal(ISOB, @fs_burnfile.text)
+@setGlobal(DEV, @exec(
+echo "@global(data)" | head -n $((@cmb_cdrom.currentItem + 1))  | cut -d'|' -f1
+))
+
+@tmr_burn.execute
+
+@exec(
+p_growisofs=@lne_pardd.Text
+iso=@global(ISOB)
+dev=@global(DEV)
+video=@global(DVDVIDEO)
+@if(@exec(
+if ((video==0))
+ echo 1
+else
+ echo 0
+fi
+))
+@txt_burnkonsole.setText(@exec(echo 
+growisofs -speed=@spn_burnspeed.text -Z @global(DEV)=@global(ISOB) -dvd-video -dvd-compat @lne_pargrowisofs.text &amp;
+))
+@endif
+
+@if(@exec(
+if ((video==1))
+ echo 1
+else
+ echo 0
+fi
+))
+@txt_burnkonsole.setText(@exec( echo 
+growisofs -speed=@spn_burnspeed.text -Z @global(DEV)=@global(ISOB) @lne_pargrowisofs.text &amp;
+))
+@endif</string>
+                    </stringlist>
+                </property>
+            </widget>
+        </widget>
+    </widget>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
