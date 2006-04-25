@@ -102,6 +102,7 @@ class frm_hlavni(QDialog):
 
 
     def initialization(self):
+        self.lst_info.clear()
         UDIs = str(commands.getoutput("hal-find-by-capability --capability storage.cdrom")).split("\n")
         for UDI in UDIs:
             NAM = commands.getoutput("hal-get-property --udi "+UDI+" --key info.product")
