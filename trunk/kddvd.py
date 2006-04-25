@@ -24,7 +24,7 @@ class frm_hlavni(qt.QDialog):
 
 
         self.btn_init = qt.QPushButton(self,"btn_init")
-        self.btn_init.setGeometry(QRect(5,90,590,26))
+        self.btn_init.setGeometry(qt.QRect(5,90,590,26))
         self.btn_init.setFlat(1)
 
         self.lst_info = qt.QListView(self,"lst_info")
@@ -81,7 +81,7 @@ class frm_hlavni(qt.QDialog):
         self.resize(qt.QSize(600,426).expandedTo(self.minimumSizeHint()))
         self.clearWState(qt.Qt.WState_Polished)
 
-        self.connect(self.btn_init,SIGNAL("clicked()"),self.initialization)
+        self.connect(self.btn_init,qt.SIGNAL("clicked()"),self.initialization)
 
 
     def languageChange(self):
@@ -127,7 +127,7 @@ class frm_hlavni(qt.QDialog):
 
 if __name__ == "__main__":
     a = qt.QApplication(sys.argv)
-    qt.QObject.connect(a,SIGNAL("lastWindowClosed()"),a,SLOT("quit()"))
+    qt.QObject.connect(a,qt.SIGNAL("lastWindowClosed()"),a,qt.SLOT("quit()"))
     w = frm_hlavni()
     a.setMainWidget(w)
     w.show()
