@@ -2,14 +2,6 @@
 
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/data/programming/python/kddvd/kddvd.ui'
-#
-# Created: Ne dub 23 20:19:06 2006
-#      by: The PyQt User Interface Compiler (pyuic) 3.16
-#
-# WARNING! All changes made in this file will be lost!
-
-
 import sys, commands
 import qt
 
@@ -20,8 +12,6 @@ class frm_hlavni(qt.QDialog):
 
         if not name:
             self.setName("frm_hlavni")
-
-
 
         self.btn_init = qt.QPushButton(self,"btn_init")
         self.btn_init.setGeometry(qt.QRect(5,90,590,26))
