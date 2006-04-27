@@ -108,7 +108,7 @@ class frm_hlavni(qt.QDialog):
                 DEV = commands.getoutput("hal-get-property --udi "+UDI+" --key block.device")
                 MED = commands.getoutput("hal-get-property --udi "+UDI+" --key storage.cdrom.cdr | sed -e s/true/CD/ -e s/false//")+" "+commands.getoutput("hal-get-property --udi "+UDI+" --key storage.cdrom.dvd | sed -e s/true/DVD/ -e s/false//")
                 SPE = commands.getoutput("mount | grep -q "+DEV+" && dvd+rw-mediainfo "+DEV+" | grep 'Current Write Speed' | cut -d: -f2 | sed 's: ::g'")
-                self.lst_info.insertItem(QListViewItem(self.lst_info, NAM, DEV, MED, SPE))
+                self.lst_info.insertItem(qt.QListViewItem(self.lst_info, NAM, DEV, MED, SPE))
 
     def createISO(self):
         print "frm_hlavni.createISO(): Not implemented yet"
